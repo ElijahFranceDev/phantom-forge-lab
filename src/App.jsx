@@ -140,10 +140,32 @@ function App() {
 
   const currentAgent = agentData[activeAgent];
 
-  function handleRunAgent() {
-    const response = generateAgentResponse(activeAgent, input);
-    setOutput(response);
+ async function handleRunAgent() {
+   setOutput("Running agent...");
+
+  try {
+    const response = await fetch(`http://localhost:5050/api/agent/${activeAgent}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ input }),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      setOutput(data.output || "Something went wrong.");
+      return;
+    }
+
+    setOutput(data.output);
+  } catch (error) {
+    setOutput(
+      "Could not reach the PhantomSync backend. Make sure the server is running with npm.cmd run dev:all."
+    );
   }
+}
 
   function handleSaveResult() {
     if (!output.trim()) return;
