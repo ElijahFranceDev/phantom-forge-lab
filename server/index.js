@@ -77,6 +77,70 @@ Suggested Outreach:
     };
   }
 
+    if (agentType === "scout") {
+    return {
+      success: true,
+      output: `PHANTOMSYNC CLIENT SCOUT AGENT
+
+Search Request:
+${input}
+
+Scout Mission:
+Find businesses that likely need Phantom Forge services such as local visibility audits, landing pages, website redesigns, Google cleanup, or mockup previews.
+
+Best Businesses To Target:
+- Local service businesses
+- Tattoo shops
+- Barbers and salons
+- Lawn care and landscaping
+- Contractors
+- Food trucks and restaurants
+- Cleaning businesses
+- Beauty professionals
+- Home service providers
+- Small medical/wellness offices
+- Local creators or authors
+
+Search Strategy:
+1. Search Google Maps by industry and city.
+2. Look for businesses with no website listed.
+3. Check businesses that only link Facebook, Instagram, Vagaro, GlossGenius, Square, or booking-only pages.
+4. Screenshot weak websites or social-only pages.
+5. Score each lead before messaging.
+6. Create a mini-audit or mockup for the best leads.
+
+Search Phrases:
+- "[industry] [city] no website"
+- "[industry] [city] Facebook"
+- "[industry] [city] Instagram"
+- "[industry] [city] booking"
+- "[industry] [city] old website"
+- "[industry] near [city]"
+- "site:facebook.com [industry] [city]"
+- "site:instagram.com [industry] [city]"
+
+Lead Score Rules:
+10/10 = no website, active business, strong photos, clear need
+8/10 = weak website, good service, needs better booking/contact flow
+6/10 = has decent website but weak Google/social presence
+4/10 = hard to verify or inactive
+1/10 = not worth contacting
+
+Recommended Output Format:
+Business Name:
+Industry:
+City:
+Current Link:
+Problem Found:
+Lead Score:
+Best Phantom Forge Offer:
+Suggested Outreach Angle:
+
+Next Step:
+Search manually for 10 businesses, paste them into the Lead Agent, then save the best ones for mockups or audits.`,
+    };
+  }
+
   if (agentType === "mockup") {
     return {
       success: true,

@@ -29,6 +29,15 @@ const agentData = {
       "Example: Track S&K. Concept A complete, Concept B needed, invoice message sent, waiting on photos.",
     button: "Run Mockup Agent",
   },
+  scout: {
+    name: "Client Scout Agent",
+    label: "Internet Lead Search",
+    description:
+      "Create search plans for finding businesses that need websites, audits, Google cleanup, or mockups.",
+    placeholder:
+      "Example: Find tattoo shops in Fort Wayne with no website, weak websites, or only social media presence.",
+    button: "Run Client Scout",
+  },
 };
 
 const starterStats = [
@@ -72,10 +81,7 @@ The business has enough information to start a visibility review, but the online
 - Improve Google visibility wording with city + service keywords.
 
 5. Phantom Forge Recommendation
-Start with a Local Visibility Audit, then offer a mobile landing page with Google Business Profile cleanup.
-
-Suggested Outreach Angle:
-“I noticed a few areas where your online presence could make it easier for customers to find, trust, and contact you. I put together a quick audit showing what could be improved.”`;
+Start with a Local Visibility Audit, then offer a mobile landing page with Google Business Profile cleanup.`;
   }
 
   if (activeAgent === "lead") {
@@ -91,19 +97,52 @@ Best Fit Service:
 - Landing Page Build
 - Google Business Profile Cleanup
 
-Why This Lead Is Worth Contacting:
-- The business appears to have an online presence but may not have a complete customer journey.
-- If they rely heavily on social media, Phantom Forge can offer a stronger home base.
-- This lead could respond well to a free mini-audit or mockup preview.
-
-Suggested Status:
-New Lead → Research → Send Mini Audit → Follow Up in 2 Days
-
-Recommended Message:
-“Hey, I came across your business and noticed a few ways your online presence could be cleaner and easier for customers to use. I help local businesses improve their website, Google visibility, and booking flow. Would you be open to me sending over a quick mini-audit?”`;
+Recommended Status:
+New Lead → Research → Send Mini Audit → Follow Up in 2 Days`;
   }
 
-  return `MOCKUP TRACKING DRAFT
+  if (activeAgent === "scout") {
+    return `CLIENT SCOUT SEARCH PLAN
+
+Search Request:
+${cleanInput}
+
+1. Best Client Type To Target
+Look for businesses that depend on local trust, calls, bookings, quotes, appointments, or foot traffic.
+
+2. Best Search Sources
+- Google Maps
+- Facebook business pages
+- Instagram local hashtags
+- TikTok local business searches
+- LinkedIn local business owner searches
+- Yelp or industry directories
+
+3. Search Phrases To Try
+- "[industry] near me no website"
+- "[industry] [city] Facebook"
+- "[industry] [city] Instagram"
+- "[industry] [city] booking only"
+- "[industry] [city] old website"
+- "site:facebook.com [industry] [city]"
+- "site:instagram.com [industry] [city]"
+
+4. Lead Qualification Criteria
+Good lead if:
+- No full website
+- Old or broken website
+- Social-only presence
+- Weak Google Business Profile
+- No clear booking/contact path
+- Good photos but poor presentation
+- Active business but weak branding
+
+5. Phantom Forge Offer To Pitch
+Start with a free mini-audit or local visibility audit. If the business is visual, offer a mockup preview.`;
+  }
+
+  if (activeAgent === "mockup") {
+    return `MOCKUP TRACKING DRAFT
 
 Mockup Notes:
 ${cleanInput}
@@ -126,10 +165,10 @@ Next Steps:
 - Choose design direction
 - Build mobile-first preview
 - Add Phantom Forge watermark
-- Track whether mockup was sent
+- Track whether mockup was sent`;
+  }
 
-Suggested Follow-Up:
-“Just wanted to send over this quick visual concept. It is not a final website, just an example of how your online presence could look cleaner and make it easier for customers to contact or book with you.”`;
+  return "Unknown agent type.";
 }
 
 function App() {
