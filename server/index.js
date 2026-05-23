@@ -74,23 +74,23 @@ Keep it organized and action-focused.
   scout: `
 You are the PhantomSync Client Scout Agent for Phantom Forge.
 
-Your job is to help find potential clients and create search missions.
+Your job is to help find, score, and prioritize potential local business clients.
 
-Important rule:
-You cannot claim you searched the live internet unless actual search results are provided.
+Important:
+- If live Google Places results are provided, rank those real businesses high-to-low.
+- If live search is unavailable, use Manual Scout Mode.
+- In Manual Scout Mode, the user may paste businesses, notes, social links, Google listing info, screenshots summarized as text, or rough lead notes.
+- Do not pretend you searched the internet if no live results were provided.
+- Be honest when the user needs to paste business names manually.
 
-Instead, create:
-- Best industries to target
-- Search phrases
-- Google Maps search plan
-- Social media search plan
-- Lead qualification rules
-- What to screenshot
-- How to score leads
+Always produce:
+- Ranked lead list high-to-low
+- Score out of 100
+- Priority level
+- Why each business ranks there
 - Best Phantom Forge offer
-- Outreach angle
-
-If the user provides actual businesses, evaluate them.
+- Suggested outreach angle
+- What to screenshot/check next
 `,
 };
 
@@ -237,6 +237,97 @@ Next Step:
 Pick the top 3 high-priority leads, screenshot their Google listing/website/socials, then run each one through the Audit Agent for a personalized mini-audit.`;
 }
 
+async function runManualScoutMode(input, reason = "Google Places is unavailable") {
+  if (!process.env.OPENAI_API_KEY) {
+    return `MANUAL SCOUT MODE
+
+${reason}.
+
+Paste a list of businesses with any notes you have, and I can rank them manually.
+
+Example:
+Garden of Ink — tattoo studio — uses Vagaro, no full website, active Instagram, strong photos.
+Jester Lawn and Land — lawn care — active Facebook, weak branding, no strong website.
+S&K — content creators — active socials, no professional landing page.`;
+  }
+
+  const manualPrompt = `
+You are PhantomSync Client Scout Agent for Phantom Forge.
+
+Google Places/live search is currently unavailable, so you are in Manual Scout Mode.
+
+Reason live search is unavailable:
+${reason}
+
+User input:
+${input}
+
+Your job:
+1. If the user pasted actual businesses or lead notes, rank them high-to-low.
+2. If the user only asked you to find businesses but did not provide business names, explain that live search is unavailable and ask them to paste names/links from Google Maps, Instagram, Facebook, or screenshots.
+3. Do not pretend you searched the internet.
+4. Be useful and practical.
+
+If business leads are provided, output:
+
+CLIENT SCOUT MANUAL RESULTS
+
+1. Business Name — Score/100 — Priority
+Industry:
+Current presence:
+Main problem:
+Why this ranks here:
+Best Phantom Forge offer:
+Suggested outreach angle:
+What to screenshot/check next:
+
+At the end, give:
+- Top 3 to contact first
+- Top 3 to make mockups for
+- Best next action tonight
+`;
+
+  const response = await client.responses.create({
+    model: "gpt-4.1-mini",
+    instructions: manualPrompt,
+    input,
+  });
+
+  return response.output_text;
+}
+
+async function searchGooglePlaces(input) {
+  if (!process.env.GOOGLE_PLACES_API_KEY) {
+    throw new Error("GOOGLE_PLACES_API_KEY is missing.");
+  }
+
+  const googleResponse = await fetch("https://places.googleapis.com/v1/places:searchText", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY,
+      "X-Goog-FieldMask":
+        "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri,places.businessStatus,places.types",
+    },
+    body: JSON.stringify({
+      textQuery: input,
+      maxResultCount: 15,
+      languageCode: "en",
+      regionCode: "US",
+    }),
+  });
+
+  const data = await googleResponse.json();
+
+  if (!googleResponse.ok) {
+    const message = data?.error?.message || "Google Places request failed.";
+    const reason = data?.error?.details?.[0]?.reason || data?.error?.status || "UNKNOWN_ERROR";
+    throw new Error(`${reason}: ${message}`);
+  }
+
+  return data.places || [];
+}
+
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -251,66 +342,36 @@ app.post("/api/scout-businesses", async (req, res) => {
     if (!input || !input.trim()) {
       return res.status(400).json({
         success: false,
-        output: "Add a search request first, like: Find tattoo shops in Winston-Salem, NC with no website.",
+        output:
+          "Add a search request or paste business leads first. Example: tattoo shops in Winston-Salem, NC. Or paste several business names with notes and I’ll rank them manually.",
       });
     }
 
-    if (!process.env.GOOGLE_PLACES_API_KEY) {
-      return res.status(500).json({
-        success: false,
-        output: "Missing GOOGLE_PLACES_API_KEY. Add it to your local .env file and Render environment variables.",
+    try {
+      const places = await searchGooglePlaces(input);
+      const output = formatScoutResults(input, places);
+
+      return res.json({
+        success: true,
+        output,
+      });
+    } catch (googleError) {
+      console.error("Google Places unavailable:", googleError.message);
+
+      const manualOutput = await runManualScoutMode(input, googleError.message);
+
+      return res.json({
+        success: true,
+        output: manualOutput,
       });
     }
-
-    const googleResponse = await fetch("https://places.googleapis.com/v1/places:searchText", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY,
-        "X-Goog-FieldMask":
-          "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri,places.businessStatus,places.types",
-      },
-      body: JSON.stringify({
-        textQuery: input,
-        maxResultCount: 15,
-        languageCode: "en",
-        regionCode: "US",
-      }),
-    });
-
-    const data = await googleResponse.json();
-
-    if (!googleResponse.ok) {
-      console.error("Google Places error:", JSON.stringify(data, null, 2));
-
-      return res.status(500).json({
-        success: false,
-        output: `Google Places hit an error:
-
-    ${JSON.stringify(data, null, 2)}
-
-    Common fixes:
-    - Make sure billing is enabled in Google Cloud.
-    - Make sure Places API is enabled.
-    - Make sure GOOGLE_PLACES_API_KEY is added to Render.
-    - Make sure the API key is from the same project where Places API is enabled.`,
-      });
-    }
-
-    const places = data.places || [];
-    const output = formatScoutResults(input, places);
-
-    return res.json({
-      success: true,
-      output,
-    });
   } catch (error) {
     console.error("Scout businesses error:", error);
 
     return res.status(500).json({
       success: false,
       output:
-        "Client Scout hit an error while searching Google Places. Check your Render logs and Google API key setup.",
+        "Client Scout hit an error. If Google Places is unavailable, paste business names manually and try again.",
     });
   }
 });
@@ -337,7 +398,8 @@ app.post("/api/agent/:agentType", async (req, res) => {
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
         success: false,
-        output: "Missing OPENAI_API_KEY. Add it to your local .env file and Render environment variables.",
+        output:
+          "Missing OPENAI_API_KEY. Add it to your local .env file and Render environment variables.",
       });
     }
 
