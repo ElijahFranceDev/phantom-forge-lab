@@ -1,176 +1,94 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import OpenAI from "openai";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5050;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 app.use(cors());
 app.use(express.json());
 
-function buildFakeAgentResponse(agentType, input) {
-  if (!input || !input.trim()) {
-    return {
-      success: false,
-      output: "Add details first so the agent has something to work with.",
-    };
-  }
+const agentPrompts = {
+  audit: `
+You are the PhantomSync Audit Agent for Phantom Forge.
 
-  if (agentType === "audit") {
-    return {
-      success: true,
-      output: `PHANTOMSYNC AUDIT AGENT
+Your job is to create practical local business audits.
+Focus on:
+- First impression
+- Mobile experience
+- Service clarity
+- Booking/contact flow
+- Google visibility
+- Trust signals
+- Quick wins
+- Recommended Phantom Forge offer
+- Outreach angle
 
-Business Input:
-${input}
+Write like a premium but clear agency strategist. Avoid hype. Be useful, direct, and specific.
+`,
 
-Audit Summary:
-This business has enough public presence to build from, but the customer journey should be made clearer. The main opportunity is improving trust, service clarity, local Google visibility, and the booking/contact path.
+  lead: `
+You are the PhantomSync Lead Agent for Phantom Forge.
 
-What Is Working:
-- The business already has visible proof or public presence.
-- There is likely content that can be turned into a stronger landing page.
-- The brand can be positioned better with cleaner structure and stronger calls to action.
+Your job is to qualify and organize potential clients.
+For every lead, produce:
+- Lead score from 1 to 10
+- Why the lead is or is not worth contacting
+- Pain points
+- Best Phantom Forge service to offer
+- Suggested pipeline status
+- Follow-up timing
+- Outreach message
 
-What May Be Hurting Them:
-- Customers may not instantly understand what to do next.
-- If the business relies mostly on social media, it may be missing Google search traffic.
-- Weak service wording or unclear contact flow can cost leads.
+Be realistic and do not overpromise.
+`,
 
-Recommended Phantom Forge Offer:
-Start with a Local Visibility Audit, then offer a mobile landing page and Google Business Profile cleanup.
+  mockup: `
+You are the PhantomSync Mockup Agent for Phantom Forge.
 
-Suggested Next Step:
-Create a short audit PDF or message and offer to send a free visual concept.`,
-    };
-  }
+Your job is to track mockup projects and recommend next design steps.
+For every mockup, produce:
+- Current status
+- Missing assets
+- Concept A direction
+- Concept B direction
+- What screenshots/photos are needed
+- Outreach/send strategy
+- Next 3 tasks
 
-  if (agentType === "lead") {
-    return {
-      success: true,
-      output: `PHANTOMSYNC LEAD AGENT
+Keep it organized and action-focused.
+`,
 
-Lead Input:
-${input}
+  scout: `
+You are the PhantomSync Client Scout Agent for Phantom Forge.
 
-Lead Score:
-8 / 10
+Your job is to help find potential clients and create search missions.
+You cannot claim you searched the live internet unless actual search results are provided.
+Instead, create:
+- Best industries to target
+- Search phrases
+- Google Maps search plan
+- Social media search plan
+- Lead qualification rules
+- What to screenshot
+- How to score leads
+- Best Phantom Forge offer
+- Outreach angle
 
-Lead Type:
-Warm local business lead.
-
-Best Offer:
-- Local Visibility Audit
-- Landing Page Build
-- Google Business Profile Cleanup
-
-Why This Lead Matters:
-This business likely has enough proof to benefit from a cleaner online presence, but may need help turning attention into calls, bookings, or quote requests.
-
-Recommended Pipeline Status:
-New Lead → Research → Mini Audit → Outreach → Follow Up
-
-Suggested Outreach:
-“Hey, I came across your business and noticed a few ways your online presence could be cleaner and easier for customers to use. I help local businesses improve their website, Google visibility, and booking flow. Would you be open to a quick mini-audit?”`,
-    };
-  }
-
-    if (agentType === "scout") {
-    return {
-      success: true,
-      output: `PHANTOMSYNC CLIENT SCOUT AGENT
-
-Search Request:
-${input}
-
-Scout Mission:
-Find businesses that likely need Phantom Forge services such as local visibility audits, landing pages, website redesigns, Google cleanup, or mockup previews.
-
-Best Businesses To Target:
-- Local service businesses
-- Tattoo shops
-- Barbers and salons
-- Lawn care and landscaping
-- Contractors
-- Food trucks and restaurants
-- Cleaning businesses
-- Beauty professionals
-- Home service providers
-- Small medical/wellness offices
-- Local creators or authors
-
-Search Strategy:
-1. Search Google Maps by industry and city.
-2. Look for businesses with no website listed.
-3. Check businesses that only link Facebook, Instagram, Vagaro, GlossGenius, Square, or booking-only pages.
-4. Screenshot weak websites or social-only pages.
-5. Score each lead before messaging.
-6. Create a mini-audit or mockup for the best leads.
-
-Search Phrases:
-- "[industry] [city] no website"
-- "[industry] [city] Facebook"
-- "[industry] [city] Instagram"
-- "[industry] [city] booking"
-- "[industry] [city] old website"
-- "[industry] near [city]"
-- "site:facebook.com [industry] [city]"
-- "site:instagram.com [industry] [city]"
-
-Lead Score Rules:
-10/10 = no website, active business, strong photos, clear need
-8/10 = weak website, good service, needs better booking/contact flow
-6/10 = has decent website but weak Google/social presence
-4/10 = hard to verify or inactive
-1/10 = not worth contacting
-
-Recommended Output Format:
-Business Name:
-Industry:
-City:
-Current Link:
-Problem Found:
-Lead Score:
-Best Phantom Forge Offer:
-Suggested Outreach Angle:
-
-Next Step:
-Search manually for 10 businesses, paste them into the Lead Agent, then save the best ones for mockups or audits.`,
-    };
-  }
-
-  if (agentType === "mockup") {
-    return {
-      success: true,
-      output: `PHANTOMSYNC MOCKUP AGENT
-
-Mockup Input:
-${input}
-
-Current Mockup Status:
-Research and planning stage.
-
-Recommended Mockup Workflow:
-1. Collect screenshots of current website/socials.
-2. Save logo, photos, services, reviews, and booking/contact info.
-3. Create Concept A with a premium Phantom Forge style.
-4. Create Concept B with a brighter customer-friendly style.
-5. Add Phantom Forge watermark.
-6. Prepare before/after post.
-7. Send with short outreach message.
-
-Next Step:
-Decide whether the mockup needs a landing page preview, logo concept, or full before/after presentation.`,
-    };
-  }
-
-  return {
-    success: false,
-    output: "Unknown agent type.",
-  };
-}
+If the user provides actual businesses, evaluate them.
+`,
+};
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -179,12 +97,57 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-app.post("/api/agent/:agentType", (req, res) => {
-  const { agentType } = req.params;
-  const { input } = req.body;
+app.post("/api/agent/:agentType", async (req, res) => {
+  try {
+    const { agentType } = req.params;
+    const { input } = req.body;
 
-  const response = buildFakeAgentResponse(agentType, input);
-  res.json(response);
+    if (!agentPrompts[agentType]) {
+      return res.status(400).json({
+        success: false,
+        output: "Unknown agent type.",
+      });
+    }
+
+    if (!input || !input.trim()) {
+      return res.status(400).json({
+        success: false,
+        output: "Add details first so the agent has something to work with.",
+      });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        output: "Missing OPENAI_API_KEY in your .env file.",
+      });
+    }
+
+    const response = await client.responses.create({
+      model: "gpt-5.5",
+      instructions: agentPrompts[agentType],
+      input,
+    });
+
+    res.json({
+      success: true,
+      output: response.output_text,
+    });
+  } catch (error) {
+    console.error("Agent error:", error);
+
+    res.status(500).json({
+      success: false,
+      output:
+        "The agent hit an error. Check your server terminal for details. Most likely causes: missing API key, invalid API key, billing issue, or network issue.",
+    });
+  }
+});
+
+app.use(express.static(path.join(__dirname, "../dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
 app.listen(PORT, () => {
