@@ -56,31 +56,36 @@ function App() {
   const currentAgent = agentData[activeAgent];
 
   async function handleRunAgent() {
-    setOutput("Running agent...");
+  setOutput("Running agent...");
 
-    try {
-      const response = await fetch(`/api/agent/${activeAgent}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ input }),
-      });
+  try {
+    const endpoint =
+      activeAgent === "scout"
+        ? "/api/scout-businesses"
+        : `/api/agent/${activeAgent}`;
 
-      const data = await response.json();
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ input }),
+    });
 
-      if (!data.success) {
-        setOutput(data.output || "Something went wrong.");
-        return;
-      }
+    const data = await response.json();
 
-      setOutput(data.output);
-    } catch (error) {
-      setOutput(
-        "Could not reach the PhantomSync backend. Make sure the deployed server is running."
-      );
+    if (!data.success) {
+      setOutput(data.output || "Something went wrong.");
+      return;
     }
+
+    setOutput(data.output);
+  } catch (error) {
+    setOutput(
+      "Could not reach the PhantomSync backend. Make sure the deployed server is running."
+    );
   }
+}
 
   function handleSaveResult() {
     if (!output.trim()) return;
