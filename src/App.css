@@ -13,8 +13,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(216, 177, 95, 0.18), transparent 34rem),
-    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.07), transparent 28rem),
+    radial-gradient(circle at top left, rgba(216, 177, 95, 0.16), transparent 30rem),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.055), transparent 28rem),
     #080808;
 }
 
@@ -28,9 +28,9 @@ button {
 }
 
 .app-shell {
-  width: min(1240px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 28px 0 48px;
+  padding: 18px 0 34px;
 }
 
 .top-nav {
@@ -38,9 +38,9 @@ button {
   justify-content: space-between;
   align-items: center;
   gap: 22px;
-  padding: 18px;
+  padding: 14px 16px;
   border: 1px solid rgba(216, 177, 95, 0.22);
-  border-radius: 28px;
+  border-radius: 26px;
   background: rgba(14, 14, 14, 0.72);
   backdrop-filter: blur(18px);
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.44);
@@ -55,9 +55,9 @@ button {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 18px;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #d8b15f, #76551d);
   color: #080808;
   font-weight: 950;
@@ -67,30 +67,30 @@ button {
 .brand h1 {
   margin: 0;
   color: #f7f1df;
-  font-size: 1.08rem;
+  font-size: 1.02rem;
 }
 
 .brand p {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   color: rgba(247, 241, 223, 0.62);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .nav-status {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  padding: 10px 14px;
+  padding: 9px 13px;
   border-radius: 999px;
   border: 1px solid rgba(216, 177, 95, 0.2);
   color: rgba(247, 241, 223, 0.75);
   background: rgba(255, 255, 255, 0.045);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
 }
 
 .pulse {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: #d8b15f;
   box-shadow: 0 0 20px rgba(216, 177, 95, 0.85);
@@ -98,16 +98,16 @@ button {
 
 .hero {
   display: grid;
-  grid-template-columns: 1.25fr 0.75fr;
+  grid-template-columns: 1.1fr 0.75fr;
   gap: 24px;
-  align-items: end;
-  padding: 72px 0 34px;
+  align-items: center;
+  padding: 42px 0 26px;
 }
 
 .eyebrow {
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   color: #d8b15f;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -115,19 +115,20 @@ button {
 
 .hero h2 {
   margin: 0;
-  max-width: 900px;
+  max-width: 760px;
   color: #f7f1df;
   text-shadow: 0 0 30px rgba(216, 177, 95, 0.12);
-  font-size: clamp(2.4rem, 6vw, 5.6rem);
+  font-size: clamp(2.1rem, 4.8vw, 4.55rem);
   line-height: 0.95;
   letter-spacing: -0.075em;
 }
 
 .hero-text {
-  max-width: 720px;
-  margin: 24px 0 0;
+  max-width: 680px;
+  margin: 18px 0 0;
   color: rgba(247, 241, 223, 0.68);
-  line-height: 1.75;
+  line-height: 1.6;
+  font-size: 0.98rem;
 }
 
 .stats-grid {
@@ -137,10 +138,10 @@ button {
 }
 
 .stat-card {
-  min-height: 112px;
-  padding: 18px;
+  min-height: 94px;
+  padding: 15px;
   border: 1px solid rgba(216, 177, 95, 0.18);
-  border-radius: 24px;
+  border-radius: 22px;
   background: linear-gradient(145deg, rgba(22, 22, 22, 0.9), rgba(10, 10, 10, 0.78));
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
 }
@@ -148,19 +149,19 @@ button {
 .stat-card span {
   display: block;
   color: rgba(247, 241, 223, 0.58);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .stat-card strong {
   display: block;
-  margin-top: 18px;
+  margin-top: 14px;
   color: #f7f1df;
-  font-size: 1.8rem;
+  font-size: 1.55rem;
 }
 
 .agent-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 18px;
   align-items: start;
 }
@@ -175,17 +176,17 @@ button {
 
 .agent-sidebar {
   position: sticky;
-  top: 20px;
+  top: 18px;
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 11px;
+  padding: 14px;
   border-radius: 28px;
 }
 
 .sidebar-label {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   color: rgba(247, 241, 223, 0.52);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -194,9 +195,9 @@ button {
 .agent-tab {
   width: 100%;
   text-align: left;
-  padding: 16px;
+  padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 20px;
+  border-radius: 18px;
   color: rgba(247, 241, 223, 0.78);
   background: rgba(255, 255, 255, 0.045);
 }
@@ -220,30 +221,36 @@ button {
 }
 
 .agent-panel {
-  padding: clamp(20px, 4vw, 34px);
+  padding: clamp(18px, 3vw, 28px);
   border-radius: 32px;
+}
+
+.panel-header {
+  text-align: center;
 }
 
 .panel-header h3,
 .section-heading h3 {
   margin: 0;
   color: #f7f1df;
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: clamp(1.9rem, 3.6vw, 3.1rem);
   line-height: 1;
   letter-spacing: -0.055em;
 }
 
 .panel-header p {
   max-width: 720px;
+  margin: 10px auto 0;
   color: rgba(247, 241, 223, 0.65);
-  line-height: 1.7;
+  line-height: 1.55;
+  font-size: 0.96rem;
 }
 
 textarea {
   width: 100%;
-  min-height: 170px;
+  min-height: 140px;
   resize: vertical;
-  margin-top: 20px;
+  margin-top: 18px;
   padding: 18px;
   border: 1px solid rgba(216, 177, 95, 0.22);
   border-radius: 24px;
@@ -262,14 +269,14 @@ textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 16px 0;
+  margin: 14px 0;
 }
 
 .primary-button,
 .secondary-button,
 .ghost-button {
   border-radius: 999px;
-  padding: 13px 18px;
+  padding: 12px 17px;
   font-weight: 900;
 }
 
@@ -293,9 +300,9 @@ textarea:focus {
 
 .output-box {
   overflow: hidden;
-  margin-top: 18px;
+  margin-top: 14px;
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 26px;
+  border-radius: 24px;
   background: rgba(0, 0, 0, 0.35);
 }
 
@@ -303,7 +310,7 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  padding: 14px 18px;
+  padding: 13px 17px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(247, 241, 223, 0.72);
   background: rgba(255, 255, 255, 0.04);
@@ -318,29 +325,34 @@ textarea:focus {
 }
 
 pre {
-  min-height: 260px;
-  max-height: 520px;
+  min-height: 215px;
+  max-height: 460px;
   overflow: auto;
   margin: 0;
-  padding: 20px;
+  padding: 18px;
   white-space: pre-wrap;
   color: rgba(247, 241, 223, 0.76);
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .saved-section {
   margin-top: 18px;
-  padding: clamp(20px, 4vw, 34px);
+  padding: clamp(18px, 3vw, 28px);
   border-radius: 32px;
 }
 
+.section-heading {
+  text-align: center;
+}
+
 .empty-state {
-  margin-top: 18px;
-  padding: 22px;
+  margin-top: 16px;
+  padding: 20px;
   border: 1px dashed rgba(216, 177, 95, 0.24);
   border-radius: 22px;
   color: rgba(247, 241, 223, 0.55);
   background: rgba(255, 255, 255, 0.035);
+  text-align: center;
 }
 
 .saved-grid {
@@ -377,11 +389,28 @@ pre {
 }
 
 @media (max-width: 900px) {
-  .top-nav,
-  .hero {
-    grid-template-columns: 1fr;
+  .app-shell {
+    width: min(100% - 24px, 1180px);
+    padding: 14px 0 28px;
+  }
+
+  .top-nav {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 34px 0 22px;
+  }
+
+  .hero h2 {
+    font-size: clamp(2rem, 12vw, 3.6rem);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .agent-layout {
@@ -392,8 +421,31 @@ pre {
     position: static;
   }
 
-  .saved-grid,
+  .saved-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .ghost-button {
+    width: 100%;
+  }
+
+  textarea {
+    min-height: 130px;
+  }
+
+  pre {
+    min-height: 200px;
   }
 }
