@@ -281,12 +281,19 @@ app.post("/api/scout-businesses", async (req, res) => {
     const data = await googleResponse.json();
 
     if (!googleResponse.ok) {
-      console.error("Google Places error:", data);
+      console.error("Google Places error:", JSON.stringify(data, null, 2));
 
       return res.status(500).json({
         success: false,
-        output:
-          "Google Places hit an error. Check your API key, billing, Places API access, and Render environment variables.",
+        output: `Google Places hit an error:
+
+    ${JSON.stringify(data, null, 2)}
+
+    Common fixes:
+    - Make sure billing is enabled in Google Cloud.
+    - Make sure Places API is enabled.
+    - Make sure GOOGLE_PLACES_API_KEY is added to Render.
+    - Make sure the API key is from the same project where Places API is enabled.`,
       });
     }
 
