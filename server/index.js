@@ -9,6 +9,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5050;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -74,7 +75,10 @@ Keep it organized and action-focused.
 You are the PhantomSync Client Scout Agent for Phantom Forge.
 
 Your job is to help find potential clients and create search missions.
+
+Important rule:
 You cannot claim you searched the live internet unless actual search results are provided.
+
 Instead, create:
 - Best industries to target
 - Search phrases
@@ -119,34 +123,37 @@ app.post("/api/agent/:agentType", async (req, res) => {
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
         success: false,
-        output: "Missing OPENAI_API_KEY in your .env file.",
+        output: "Missing OPENAI_API_KEY. Add it to your local .env file and Render environment variables.",
       });
     }
 
     const response = await client.responses.create({
-      model: "gpt-5.5",
+      model: "gpt-4.1-mini",
       instructions: agentPrompts[agentType],
       input,
     });
 
-    res.json({
+    return res.json({
       success: true,
       output: response.output_text,
     });
   } catch (error) {
     console.error("Agent error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       output:
-        "The agent hit an error. Check your server terminal for details. Most likely causes: missing API key, invalid API key, billing issue, or network issue.",
+        "The agent hit an error. Check your server terminal or Render logs. Common causes: missing API key, invalid API key, billing/quota issue, or model access issue.",
     });
   }
 });
 
+// Serve built React app in production.
 app.use(express.static(path.join(__dirname, "../dist")));
 
-app.get("*", (req, res) => {
+// Safe fallback for React routes.
+// This avoids the Express 5 app.get('*') crash.
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
