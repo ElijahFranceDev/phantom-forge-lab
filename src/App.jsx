@@ -41,135 +41,11 @@ const agentData = {
 };
 
 const starterStats = [
-  { label: "Agents Online", value: "3" },
-  { label: "Mode", value: "Lab" },
+  { label: "Agents Online", value: "4" },
+  { label: "Mode", value: "Live Lab" },
   { label: "Storage", value: "Local" },
-  { label: "API", value: "Next" },
+  { label: "API", value: "OpenAI" },
 ];
-
-function generateAgentResponse(activeAgent, input) {
-  const cleanInput = input.trim();
-
-  if (!cleanInput) {
-    return "Add business details first. Give me the business name, industry, website/social link, and what you noticed.";
-  }
-
-  if (activeAgent === "audit") {
-    return `PHANTOM FORGE AUDIT DRAFT
-
-Business Notes:
-${cleanInput}
-
-1. First Impression
-The business has enough information to start a visibility review, but the online presence needs to feel clearer, more trustworthy, and easier to act on.
-
-2. What Is Working
-- There is already some public presence to build from.
-- The business likely has photos, services, or social proof that can be turned into stronger website content.
-- A focused landing page could make the brand feel more professional fast.
-
-3. What May Be Hurting Them
-- Customers may not instantly understand the services, booking flow, or next step.
-- If they rely only on social media, they may be missing search traffic from Google.
-- If the contact button, booking link, or service list is unclear, people may leave before reaching out.
-
-4. Quick Wins
-- Add a clean mobile-first landing page.
-- Add clear service sections.
-- Add a strong call-to-action above the fold.
-- Add reviews, photos, and trust signals.
-- Improve Google visibility wording with city + service keywords.
-
-5. Phantom Forge Recommendation
-Start with a Local Visibility Audit, then offer a mobile landing page with Google Business Profile cleanup.`;
-  }
-
-  if (activeAgent === "lead") {
-    return `LEAD QUALIFICATION DRAFT
-
-Lead Notes:
-${cleanInput}
-
-Lead Score: 8/10
-
-Best Fit Service:
-- Local Visibility Audit
-- Landing Page Build
-- Google Business Profile Cleanup
-
-Recommended Status:
-New Lead → Research → Send Mini Audit → Follow Up in 2 Days`;
-  }
-
-  if (activeAgent === "scout") {
-    return `CLIENT SCOUT SEARCH PLAN
-
-Search Request:
-${cleanInput}
-
-1. Best Client Type To Target
-Look for businesses that depend on local trust, calls, bookings, quotes, appointments, or foot traffic.
-
-2. Best Search Sources
-- Google Maps
-- Facebook business pages
-- Instagram local hashtags
-- TikTok local business searches
-- LinkedIn local business owner searches
-- Yelp or industry directories
-
-3. Search Phrases To Try
-- "[industry] near me no website"
-- "[industry] [city] Facebook"
-- "[industry] [city] Instagram"
-- "[industry] [city] booking only"
-- "[industry] [city] old website"
-- "site:facebook.com [industry] [city]"
-- "site:instagram.com [industry] [city]"
-
-4. Lead Qualification Criteria
-Good lead if:
-- No full website
-- Old or broken website
-- Social-only presence
-- Weak Google Business Profile
-- No clear booking/contact path
-- Good photos but poor presentation
-- Active business but weak branding
-
-5. Phantom Forge Offer To Pitch
-Start with a free mini-audit or local visibility audit. If the business is visual, offer a mockup preview.`;
-  }
-
-  if (activeAgent === "mockup") {
-    return `MOCKUP TRACKING DRAFT
-
-Mockup Notes:
-${cleanInput}
-
-Current Status:
-- Research started
-- Screenshots/content review needed
-- Concept direction ready to define
-
-Recommended Mockup Plan:
-1. Collect current screenshots
-2. Save logo/photos/services
-3. Create Concept A: premium clean landing page
-4. Create Concept B: brighter customer-friendly version
-5. Prepare before/after post
-6. Send with a short outreach message
-
-Next Steps:
-- Confirm business name and industry
-- Choose design direction
-- Build mobile-first preview
-- Add Phantom Forge watermark
-- Track whether mockup was sent`;
-  }
-
-  return "Unknown agent type.";
-}
 
 function App() {
   const [activeAgent, setActiveAgent] = useState("audit");
@@ -179,32 +55,32 @@ function App() {
 
   const currentAgent = agentData[activeAgent];
 
- async function handleRunAgent() {
-   setOutput("Running agent...");
+  async function handleRunAgent() {
+    setOutput("Running agent...");
 
-  try {
-    const response = await fetch(`http://localhost:5050/api/agent/${activeAgent}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ input }),
-    });
+    try {
+      const response = await fetch(`/api/agent/${activeAgent}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ input }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!data.success) {
-      setOutput(data.output || "Something went wrong.");
-      return;
+      if (!data.success) {
+        setOutput(data.output || "Something went wrong.");
+        return;
+      }
+
+      setOutput(data.output);
+    } catch (error) {
+      setOutput(
+        "Could not reach the PhantomSync backend. Make sure the deployed server is running."
+      );
     }
-
-    setOutput(data.output);
-  } catch (error) {
-    setOutput(
-      "Could not reach the PhantomSync backend. Make sure the server is running with npm.cmd run dev:all."
-    );
   }
-}
 
   function handleSaveResult() {
     if (!output.trim()) return;
@@ -237,7 +113,7 @@ function App() {
 
         <div className="nav-status">
           <span className="pulse"></span>
-          Local V1 Online
+          Live V1 Online
         </div>
       </nav>
 
