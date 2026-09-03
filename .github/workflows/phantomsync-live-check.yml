@@ -1,0 +1,57 @@
+name: PhantomSync Live Gateway Check
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: phantomsync-live-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check deployed PhantomSync backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://phantom-forge-lab.onrender.com"
+
+          health_code=$(curl -sS -L -o /tmp/health.json -w "%{http_code}" --max-time 30 "${BASE_URL}/api/health" || true)
+          echo "Health HTTP: ${health_code}"
+          cat /tmp/health.json 2>/dev/null || true
+          echo
+
+          if [ "$health_code" != "200" ]; then
+            echo "Expected PhantomSync deployment was not reachable at ${BASE_URL}."
+            exit 1
+          fi
+
+          agent_code=$(curl -sS -L -o /tmp/agent.json -w "%{http_code}" --max-time 60 \
+            -H "Content-Type: application/json" \
+            -d '{"input":"Reply with exactly: PHANTOMSYNC_AI_ONLINE"}' \
+            "${BASE_URL}/api/agent/lead" || true)
+          echo "Agent HTTP: ${agent_code}"
+          cat /tmp/agent.json 2>/dev/null || true
+          echo
+
+          if [ "$agent_code" != "200" ]; then
+            echo "PhantomSync backend is reachable but AI execution did not succeed."
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          with open('/tmp/agent.json', encoding='utf-8') as f:
+              data = json.load(f)
+          if not data.get('success'):
+              raise SystemExit('PhantomSync AI returned success=false')
+          output = str(data.get('output', ''))
+          if not output.strip():
+              raise SystemExit('PhantomSync AI returned an empty output')
+          print('PhantomSync AI gateway is live.')
+          PY
