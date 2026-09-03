@@ -7,7 +7,7 @@ import {
 } from "crypto";
 
 const BRIDGE_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAwiYO4UN0bZkak2haIr+8e2OZ/2i8PMtmEtqucGUefO8=
+MCowBQYDK2VwAyEA7NOnG0MY29jS2V2ueXNsmh3wumny4Gk4w43xZfwdWWU=
 -----END PUBLIC KEY-----`;
 
 const publicKey = createPublicKey(BRIDGE_PUBLIC_KEY);
