@@ -13,7 +13,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - name: Check deployed PhantomSync backend
         shell: bash
@@ -21,26 +21,47 @@ jobs:
           set -euo pipefail
           BASE_URL="https://phantom-forge-lab.onrender.com"
 
-          health_code=$(curl -sS -L -o /tmp/health.json -w "%{http_code}" --max-time 30 "${BASE_URL}/api/health" || true)
-          echo "Health HTTP: ${health_code}"
-          cat /tmp/health.json 2>/dev/null || true
-          echo
+          echo "Waiting for PhantomSync deployment..."
+          ready=0
+          for attempt in $(seq 1 30); do
+            health_code=$(curl -sS -L -o /tmp/health.json -w "%{http_code}" --max-time 30 "${BASE_URL}/api/health" || true)
+            bridge_code=$(curl -sS -L -o /tmp/bridge.json -w "%{http_code}" --max-time 30 \
+              -H "Content-Type: application/json" \
+              -d '{"messages":[{"role":"user","content":"ping"}]}' \
+              "${BASE_URL}/api/forge-completion" || true)
 
-          if [ "$health_code" != "200" ]; then
-            echo "Expected PhantomSync deployment was not reachable at ${BASE_URL}."
+            echo "Attempt ${attempt}/30: health=${health_code} bridge=${bridge_code}"
+            if [ "$health_code" = "200" ] && [ "$bridge_code" = "401" ]; then
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+
+          if [ "$ready" != "1" ]; then
+            echo "PhantomSync signed Forge bridge did not become ready."
+            cat /tmp/health.json 2>/dev/null || true
+            cat /tmp/bridge.json 2>/dev/null || true
             exit 1
           fi
+
+          echo "Health response:"
+          cat /tmp/health.json
+          echo
+          echo "Unsigned bridge response (must be rejected):"
+          cat /tmp/bridge.json
+          echo
 
           agent_code=$(curl -sS -L -o /tmp/agent.json -w "%{http_code}" --max-time 60 \
             -H "Content-Type: application/json" \
             -d '{"input":"Reply with exactly: PHANTOMSYNC_AI_ONLINE"}' \
             "${BASE_URL}/api/agent/lead" || true)
-          echo "Agent HTTP: ${agent_code}"
+          echo "Legacy agent HTTP: ${agent_code}"
           cat /tmp/agent.json 2>/dev/null || true
           echo
 
           if [ "$agent_code" != "200" ]; then
-            echo "PhantomSync backend is reachable but AI execution did not succeed."
+            echo "Existing PhantomSync AI execution no longer works."
             exit 1
           fi
 
@@ -53,5 +74,5 @@ jobs:
           output = str(data.get('output', ''))
           if not output.strip():
               raise SystemExit('PhantomSync AI returned an empty output')
-          print('PhantomSync AI gateway is live.')
+          print('PhantomSync AI gateway is live and Forge bridge rejects unsigned traffic.')
           PY
