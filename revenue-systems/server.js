@@ -96,7 +96,7 @@ const server=createServer(async(req,res)=>{
   if(!sql)return send(res,503,{ok:false,error:'Applications are temporarily unavailable.'});
   const {name,business,email,volume,challenge}=check.data;
   try{
-    const query = "INSERT INTO pilot_applications(contact_name,business_name,email,inquiry_volume,bottleneck,consent_to_contact) SELECT $1,$2,$3,$4,$5,true WHERE NOT EXISTS(SELECT 1 FROM pilot_applications WHERE email=$3 AND created_at>now()-interval '1 hour')";
+    const query = "INSERT INTO pilot_applications(contact_name,business_name,email,inquiry_volume,bottleneck,consent_to_contact) SELECT $1::varchar(100),$2::varchar(120),$3::varchar(150),$4::varchar(20),$5::varchar(1200),true WHERE NOT EXISTS(SELECT 1 FROM pilot_applications WHERE email=$3::varchar(150) AND created_at>now()-interval '1 hour')";
     await sql.query(query,[name,business,email,volume,challenge]);
     return send(res,201,{ok:true});
   }catch(err){
