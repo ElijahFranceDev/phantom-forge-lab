@@ -8,7 +8,8 @@ const root = dirname(fileURLToPath(import.meta.url));
 const files = {
   '/': ['public/index.html','text/html; charset=utf-8'],
   '/privacy.html': ['public/privacy.html','text/html; charset=utf-8'],
-  '/demo.html': ['public/demo.html','text/html; charset=utf-8']
+  '/demo.html': ['public/demo.html','text/html; charset=utf-8'],
+  '/roofing.html': ['public/roofing.html','text/html; charset=utf-8']
 };
 const pages = {};
 for (const [url,[path]] of Object.entries(files)) pages[url] = await readFile(join(root,path));
