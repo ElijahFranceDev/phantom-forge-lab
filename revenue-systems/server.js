@@ -13,6 +13,17 @@ const pages = {};
 for (const [url,[path]] of Object.entries(files)) pages[url] = await readFile(join(root,path));
 const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 const volumes = new Set(['0-25','26-100','101-300','300+']);
+const rateBuckets = new Map();
+function allowApplication(req) {
+  const now = Date.now();
+  if (rateBuckets.size > 2500) rateBuckets.clear();
+  const key = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim().slice(0,128);
+  const hits = (rateBuckets.get(key) || []).filter(t => now - t < 3600000);
+  if (hits.length >= 5) {rateBuckets.set(key,hits);return false;}
+  hits.push(now);
+  rateBuckets.set(key,hits);
+  return true;
+}
 const send = (res,status,data,type='application/json; charset=utf-8') => {
   res.writeHead(status, {'Content-Type':type,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'strict-origin-when-cross-origin'});
   res.end(typeof data==='string'||Buffer.isBuffer(data) ? data : JSON.stringify(data));
@@ -47,6 +58,7 @@ const server=createServer(async(req,res)=>{
   const check=validate(a);
   if(check.error)return send(res,422,{ok:false,error:check.error});
   if(check.honeypot)return send(res,200,{ok:true});
+  if(!allowApplication(req))return send(res,429,{ok:false,error:'Too many applications. Please try again later.'});
   if(!sql)return send(res,503,{ok:false,error:'Applications are temporarily unavailable.'});
   const {name,business,email,volume,challenge}=check.data;
   try{
