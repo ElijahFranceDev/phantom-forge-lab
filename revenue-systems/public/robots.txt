@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /roofing.html
+Allow: /privacy.html
+Disallow: /api/
+Sitemap: https://phantom-forge-revenue-systems-pilot.onrender.com/sitemap.xml
