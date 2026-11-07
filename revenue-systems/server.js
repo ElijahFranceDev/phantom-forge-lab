@@ -15,6 +15,29 @@ const pages = {};
 for (const [url,[path]] of Object.entries(files)) pages[url] = await readFile(join(root,path));
 const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 const volumes = new Set(['0-25','26-100','101-300','300+']);
+function safeDatabaseError(err) {
+  const message=String(err?.message||'').toLowerCase();
+  const tests=[
+    ['authentication',/password authentication|authentication failed|auth failed/],
+    ['database_missing',/database .* does not exist/],
+    ['role_missing',/role .* does not exist/],
+    ['missing_table',/relation .* does not exist/],
+    ['connection_format',/connection string|invalid.*url|invalid.*uri/],
+    ['fetch_failed',/fetch failed|failed to fetch/],
+    ['host_lookup',/enotfound|dns|name resolution/],
+    ['tls',/tls|ssl|certificate/],
+    ['network',/network|connect|socket|timeout/],
+    ['permission',/permission denied/],
+  ];
+  const matched=tests.find(([,re])=>re.test(message));
+  return {
+    errorClass: matched?.[0]||'unclassified',
+    name:String(err?.name||'unknown').slice(0,60),
+    code:String(err?.code||'none').slice(0,30),
+    causeCode:String(err?.cause?.code||'none').slice(0,30),
+    messageLength:message.length
+  };
+}
 const rateBuckets = new Map();
 function allowApplication(req) {
   const now = Date.now();
@@ -50,7 +73,8 @@ const server=createServer(async(req,res)=>{
     try{
       await sql`SELECT 1 AS ok`;
       return send(res,200,{ok:true,service:'phantom-forge-revenue-systems',intakeConfigured:true,databaseReachable:true});
-    }catch{
+    }catch(err){
+      console.error('DB_HEALTH_FAILURE',JSON.stringify(safeDatabaseError(err)));
       return send(res,503,{ok:false,service:'phantom-forge-revenue-systems',databaseReachable:false});
     }
   }
@@ -75,7 +99,8 @@ const server=createServer(async(req,res)=>{
     const query = "INSERT INTO pilot_applications(contact_name,business_name,email,inquiry_volume,bottleneck,consent_to_contact) SELECT $1,$2,$3,$4,$5,true WHERE NOT EXISTS(SELECT 1 FROM pilot_applications WHERE email=$3 AND created_at>now()-interval '1 hour')";
     await sql.query(query,[name,business,email,volume,challenge]);
     return send(res,201,{ok:true});
-  }catch{
+  }catch(err){
+    console.error('DB_APPLY_FAILURE',JSON.stringify(safeDatabaseError(err)));
     return send(res,503,{ok:false,error:'Unable to save the request right now. Please try again later.'});
   }
 });
