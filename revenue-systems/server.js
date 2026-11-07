@@ -45,7 +45,15 @@ function validate(a){
 const server=createServer(async(req,res)=>{
   const path=(req.url||'/').split('?')[0];
   if(req.method==='GET'&&files[path])return send(res,200,pages[path],files[path][1]);
-  if(req.method==='GET'&&path==='/api/health')return send(res,200,{ok:true,service:'phantom-forge-revenue-systems',intakeConfigured:!!sql});
+  if(req.method==='GET'&&path==='/api/health'){
+    if(!sql)return send(res,503,{ok:false,service:'phantom-forge-revenue-systems',databaseReachable:false});
+    try{
+      await sql`SELECT 1 AS ok`;
+      return send(res,200,{ok:true,service:'phantom-forge-revenue-systems',intakeConfigured:true,databaseReachable:true});
+    }catch{
+      return send(res,503,{ok:false,service:'phantom-forge-revenue-systems',databaseReachable:false});
+    }
+  }
   if(path!=='/api/apply')return send(res,404,{ok:false,error:'Not found.'});
   if(req.method!=='POST')return send(res,405,{ok:false,error:'Method not allowed.'});
   if(!String(req.headers['content-type']||'').toLowerCase().startsWith('application/json'))return send(res,415,{ok:false,error:'JSON required.'});
@@ -71,4 +79,31 @@ const server=createServer(async(req,res)=>{
     return send(res,503,{ok:false,error:'Unable to save the request right now. Please try again later.'});
   }
 });
-server.listen(Number(process.env.PORT||10000),'0.0.0.0');
+const port=Number(process.env.PORT||10000);
+server.listen(port,'0.0.0.0',async()=>{
+  // Staging-only verification using a synthetic address, never a real prospect.
+  if(process.env.PF_STAGING_SMOKE !== 'enabled' || !sql)return;
+  const email='qa-project-100k@phantomforge.invalid';
+  try{
+    const previous=await sql.query('SELECT id FROM pilot_applications WHERE email=$1 LIMIT 1',[email]);
+    if(previous.length){console.log('STAGING_SMOKE: existing QA record detected; skipping duplicate submission');return;}
+    const payload={
+      name:'Automated QA Test',
+      business:'Synthetic Test Company — Not a Prospect',
+      email,
+      volume:'26-100',
+      challenge:'QA TEST ONLY: verify POST-to-Neon pipeline; never treat as a customer.',
+      consent:true,
+      website:''
+    };
+    const response=await fetch('http://127.0.0.1:'+port+'/api/apply',{
+      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)
+    });
+    if(response.status!==201)throw new Error('intake HTTP status '+response.status);
+    const stored=await sql.query("UPDATE pilot_applications SET source='qa', state='closed' WHERE email=$1 AND source='website' RETURNING id",[email]);
+    if(stored.length!==1)throw new Error('QA application not persisted exactly once');
+    console.log('STAGING_SMOKE: PASS; synthetic POST persisted and labeled qa/closed');
+  }catch(err){
+    console.error('STAGING_SMOKE: FAIL ('+String(err.message||'unknown').slice(0,140)+')');
+  }
+});
