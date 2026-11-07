@@ -1,0 +1,34 @@
+name: Project 100K Pilot Smoke Test
+on:
+  push:
+    branches:
+      - project-100k-intake
+    paths:
+      - .github/workflows/project-100k-smoke.yml
+permissions:
+  contents: read
+jobs:
+  staging:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - name: Verify staging homepage and health
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://phantom-forge-revenue-systems-pilot.onrender.com"
+          curl --fail --silent --show-error --retry 3 --retry-delay 5 "$BASE/" -o /tmp/landing.html
+          grep -q 'Phantom Forge Revenue Systems' /tmp/landing.html
+          curl --fail --silent --show-error "$BASE/api/health" -o /tmp/health.json
+          grep -q '"intakeConfigured":true' /tmp/health.json
+          curl --fail --silent --show-error "$BASE/roofing.html" -o /tmp/roofing.html
+          grep -q 'Roofing' /tmp/roofing.html
+      - name: Submit one synthetic application, without customer data
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://phantom-forge-revenue-systems-pilot.onrender.com"
+          printf '%s' '{"name":"Project 100K QA only","business":"Synthetic QA Company - not a lead","email":"qa-project-100k@phantomforge.invalid","volume":"26-100","challenge":"AUTOMATED QA TEST ONLY - exclude from commercial reporting","consent":true,"website":""}' > /tmp/qa.json
+          status="$(curl --silent --show-error --max-time 25 -o /tmp/result.json -w '%{http_code}' -H 'Content-Type: application/json' -H "Origin: $BASE" --data-binary @/tmp/qa.json "$BASE/api/apply")"
+          test "$status" = "201"
+          grep -q '"ok":true' /tmp/result.json
